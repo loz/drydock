@@ -17,8 +17,8 @@ class App
 
 	def perform_build(facts)
 		`git clone #{facts[:repo]} source`
-		`cd source`
-		`./manual-cs.sh`
+		Dir.chdir("source/")
+		`./manual-cd.sh`
 	end
 
 	def extract_facts(payload, request)
