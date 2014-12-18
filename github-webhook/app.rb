@@ -9,9 +9,16 @@ class App
 		payload = JSON.parse(req.body.read)
 		facts = extract_facts(payload, req)
 		logger.info facts.to_yaml
+		perform_build(facts)
 		return [200, {}, []]
 	rescue => e
 		return [500, {}, [e.message]]
+	end
+
+	def perform_build(facts)
+		`git clone #{facts[:repo]} source`
+		`cd source`
+		`./manual-cs.sh`
 	end
 
 	def extract_facts(payload, request)

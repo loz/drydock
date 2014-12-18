@@ -33,7 +33,12 @@ testSuite() {
 
 deploy() {
 	docker rm -f github-webhook
-	docker run --name github-webhook -d --env="VIRTUAL_HOST=github-webhook.services.mrloz.xyz" --env="VIRTUAL_PORT=3000" github-webhook
+	docker run --name github-webhook -d \
+		--env="VIRTUAL_HOST=github-webhook.services.mrloz.xyz" \
+		--env="VIRTUAL_PORT=3000" \
+		-v /root/.ssh:/root/.ssh \
+		-v /var/run/docker.sock:/var/run/docker.sock \
+		github-webhook
 }
 
 dockerImage &&
