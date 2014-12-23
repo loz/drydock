@@ -2,12 +2,9 @@ require 'rack'
 require 'json'
 require 'yaml'
 
-require 'nsq'
+require 'redis'
 
-NSQD = "#{ENV["NSQD_PORT_4150_TCP_ADDR"]}:#{ENV["NSQD_PORT_4150_TCP_PORT"]}"
-
-puts NSQD
-
+CONN_STRING = "redis://#{ENV["REDIS_PORT_6379_TCP_ADDR"]}:#{ENV["REDIS_PORT_6379_TCP_PORT"]}/0"
 
 class App
 	def call(env)
@@ -15,25 +12,14 @@ class App
 		req = Rack::Request.new(env)
 		payload = JSON.parse(req.body.read)
 		facts = extract_facts(payload, req)
-		con = producer
-		con.write(facts.to_json)
-		con.terminate
+		pubhub.publish('trigger', {:source => 'github-webhook', :build => facts}.to_json)
 		return [200, {}, []]
 	rescue => e
 		return [500, {}, [e.message]]
 	end
 
-	def producer
-		Nsq::Producer.new(
-			:nsqd => NSQD,
-			:topic => "trigger"
-			)
-	end
-
-	def perform_build(facts)
-		`git clone #{facts[:repo]} source`
-		Dir.chdir("source/")
-		`./manual-cd.sh`
+	def pubhub
+		@pubhub ||= Redis.new(:url => CONN_STRING)
 	end
 
 	def extract_facts(payload, request)

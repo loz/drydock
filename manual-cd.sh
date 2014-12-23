@@ -38,13 +38,13 @@ deploy() {
 	docker run --name github-webhook -d \
 		--env="VIRTUAL_HOST=github-webhook.services.mrloz.xyz" \
 		--env="VIRTUAL_PORT=3000" \
-		--link nsqd:nsqd \
+		--link redis:redis \
 		-v /root/.ssh:/root/.ssh \
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		github-webhook
 	docker rm -f pipeline-manager
 	docker run --name pipeline-manager -d \
-		--link nsqd:nsqd \
+		--link redis:redis \
 		-v /root/.ssh:/root/.ssh \
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		pipeline-manager
