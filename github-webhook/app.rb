@@ -2,17 +2,32 @@ require 'rack'
 require 'json'
 require 'yaml'
 
+require 'nsq'
+
+NSQD = "#{ENV["NSQD_PORT_4150_TCP_ADDR"]}:#{ENV["NSQD_PORT_4150_TCP_PORT"]}"
+
+puts NSQD
+
+
 class App
 	def call(env)
 		logger = env["rack.logger"]
 		req = Rack::Request.new(env)
 		payload = JSON.parse(req.body.read)
 		facts = extract_facts(payload, req)
-		logger.info facts.to_yaml
-		perform_build(facts)
+		con = producer
+		con.write(facts.to_json)
+		con.terminate
 		return [200, {}, []]
 	rescue => e
 		return [500, {}, [e.message]]
+	end
+
+	def producer
+		Nsq::Producer.new(
+			:nsqd => NSQD,
+			:topic => "trigger"
+			)
 	end
 
 	def perform_build(facts)
