@@ -17,8 +17,9 @@ docker_logs() {
 }
 
 dockerImage() {
-	pushd github-webhook
-		docker build -t github-webhook .
+	echo -e "Building $1"
+	pushd $1
+		docker build -t $1 .
 		status=$?
 	popd
 	report "dockerImage" $status
@@ -37,12 +38,21 @@ deploy() {
 	docker run --name github-webhook -d \
 		--env="VIRTUAL_HOST=github-webhook.services.mrloz.xyz" \
 		--env="VIRTUAL_PORT=3000" \
+		--link nsqd:nsqd \
 		-v /root/.ssh:/root/.ssh \
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		github-webhook
+	docker rm -f pipeline-manager
+	docker run --name pipeline-manager -d \
+		--link nsqd:nsqd \
+		-v /root/.ssh:/root/.ssh \
+		-v /var/run/docker.sock:/var/run/docker.sock \
+		pipeline-manager
+		
 }
 
-dockerImage &&
+dockerImage 'github-webhook' &&
+dockerImage 'pipeline-manager' &&
 testSuite &&
 deploy &&
 echo "SUCCESS"
