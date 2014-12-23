@@ -14,11 +14,16 @@ class App
 	def run
 		puts 'Starting'
 		loop do
+			begin
 			puts 'Popping'
 			puts consumer.size
-			facts = JSON.parse(consumer.pop)
-			perform_build(facts)
+			msg = consumer.pop
+			facts = JSON.parse(msg.body)
+			trigger_build(facts)
 			msg.finish
+			rescue => e
+				puts e.message
+			end
 		end
 	end
 
@@ -37,10 +42,10 @@ class App
 			)
 	end
 
-	def perform_build(facts)
-		puts `git clone #{facts[:repo]} source`
-		Dir.chdir("source/")
-		puts `./manual-cd.sh`
+	def trigger_build(facts)
+		cmd = "docker run -d --link nsqd:nsqd -v /root/.ssh:/root/.ssh -v /var/run/docker.sock:/var/run/docker.sock git-checkout #{facts["repo"]}"
+		puts "Running #{cmd}"
+		puts `#{cmd}`
 	end
 
 end

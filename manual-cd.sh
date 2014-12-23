@@ -53,6 +53,7 @@ deploy() {
 
 dockerImage 'github-webhook' &&
 dockerImage 'pipeline-manager' &&
+dockerImage 'git-checkout' &&
 testSuite &&
 deploy &&
 echo "SUCCESS"
