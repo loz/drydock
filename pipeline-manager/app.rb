@@ -8,8 +8,6 @@ NSQD = "#{ENV["NSQD_PORT_4150_TCP_ADDR"]}:#{ENV["NSQD_PORT_4150_TCP_PORT"]}"
 
 Nsq.logger = Logger.new(STDOUT)
 
-100.times { puts 'flushing' }
-
 class App
 	def run
 		puts 'Starting'
