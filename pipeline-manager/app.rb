@@ -2,46 +2,34 @@ require 'json'
 require 'yaml'
 require 'logger'
 
-require 'nsq'
+require 'redis'
 
-NSQD = "#{ENV["NSQD_PORT_4150_TCP_ADDR"]}:#{ENV["NSQD_PORT_4150_TCP_PORT"]}"
-
-Nsq.logger = Logger.new(STDOUT)
+CONN_STRING = "redis://#{ENV["REDIS_PORT_6379_TCP_ADDR"]}:#{ENV["REDIS_PORT_6379_TCP_PORT"]}/0"
 
 class App
 	def run
 		puts 'Starting'
-		loop do
-			begin
-			puts 'Popping'
-			puts consumer.size
-			msg = consumer.pop
-			facts = JSON.parse(msg.body)
-			trigger_build(facts)
-			msg.finish
-			rescue => e
-				puts e.message
+		pubhub.subscribe("trigger") do |on|
+			on.message do |channel, message|
+				facts = JSON.parse(message)
+				trigger_build(facts)
 			end
 		end
+	rescue => e
+		puts e.message
+		sleep 1
+		retry
 	end
 
-	def consumer
-		@consumer ||= Nsq::Consumer.new(
-										:nsqd => NSQD,
-										:topic  => 'trigger',
-									  :channel => 'pipeline-manager'
-					)
-	end
-
-	def producer
-		@producer ||= Nsq::Producer.new(
-			:nsqd => NSQD,
-			:topic => "manager"
-			)
+	def pubhub
+		Redis.new(:url => CONN_STRING)
 	end
 
 	def trigger_build(facts)
-		cmd = "docker run -d --link nsqd:nsqd -v /root/.ssh:/root/.ssh -v /var/run/docker.sock:/var/run/docker.sock git-checkout #{facts["repo"]}"
+		build = facts["build"]
+		buildid = build["sha"]
+		puts pubhub.set buildid, build.to_json
+		cmd = "docker run -d --link redis:redis -v /root/.ssh:/root/.ssh -v /var/run/docker.sock:/var/run/docker.sock git-checkout #{buildid}"
 		puts "Running #{cmd}"
 		puts `#{cmd}`
 	end

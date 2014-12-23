@@ -1,36 +1,28 @@
 require 'json'
 require 'yaml'
 require 'logger'
-require 'nsq'
+require 'redis'
 
-NSQD = "#{ENV["NSQD_PORT_4150_TCP_ADDR"]}:#{ENV["NSQD_PORT_4150_TCP_PORT"]}"
-
-Nsq.logger = Logger.new(STDOUT)
+CONN_STRING = "redis://#{ENV["REDIS_PORT_6379_TCP_ADDR"]}:#{ENV["REDIS_PORT_6379_TCP_PORT"]}/0"
 
 class App
-	def run(repo)
+	def run(buildid)
+		puts "Receiving Build: #{buildid}"
+		build = JSON.parse(pubhub.get(buildid))
+		perform_build(build)
+	end
+
+	def pubhub
+		@pubhub ||= Redis.new(:url => CONN_STRING)
+	end
+
+	def perform_build(build)
+		puts build.to_yaml
+		repo = build["repo"]
 		puts "Cloning #{repo}"
 		puts `git clone #{repo} /working`
 		Dir.chdir("/working/")
 		puts `./manual-cd.sh`
-	end
-
-	def consumer
-		@consumer ||= Nsq::Consumer.new(
-										:nsqd => NSQD,
-										:topic  => 'trigger',
-									  :channel => 'pipeline-manager'
-					)
-	end
-
-	def producer
-		@producer ||= Nsq::Producer.new(
-			:nsqd => NSQD,
-			:topic => "manager"
-			)
-	end
-
-	def perform_build(facts)
 	end
 
 end
