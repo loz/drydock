@@ -9,20 +9,43 @@ class App
 	def run(buildid)
 		puts "Receiving Build: #{buildid}"
 		build = JSON.parse(pubhub.get(buildid))
-		perform_build(build)
+		clone_source(build)
+		notify_success(buildid)
+		await_finish(buildid)
 	end
 
 	def pubhub
-		@pubhub ||= Redis.new(:url => CONN_STRING)
+		Redis.new(:url => CONN_STRING)
 	end
 
-	def perform_build(build)
+	def notify_success(buildid)
+		message = {
+			:source => 'git-checkout',
+			:buildid => buildid,
+			:status => 'success'
+		}
+		puts "Notify 'task-finished' -> #{message.inspect}"
+		puts pubhub.publish 'task-finished', message.to_json
+	end
+
+	def await_finish(buildid)
+		puts "Waiting for build finsih to clean up.."
+		conn = pubhub
+		conn.subscribe("build-finished") do |on|
+			on.message do |channel, message|
+				build = JSON.parse(message)
+				conn.unsubscribe if build["buildid"] == buildid
+			end
+		end
+		puts "Finishing up..."
+	end
+
+	def clone_source(build)
 		puts build.to_yaml
 		repo = build["repo"]
 		puts "Cloning #{repo}"
-		puts `git clone #{repo} /working`
-		Dir.chdir("/working/")
-		puts `./manual-cd.sh`
+		puts `git clone --depth 1 #{repo} /working`
+		puts 'Clone complete'
 	end
 
 end
