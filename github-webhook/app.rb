@@ -12,7 +12,12 @@ class App
 		req = Rack::Request.new(env)
 		payload = JSON.parse(req.body.read)
 		facts = extract_facts(payload, req)
-		pubhub.publish('trigger', {:source => 'github-webhook', :build => facts}.to_json)
+		message = {
+			:source => 'github-webhook',
+			:build => facts,
+			:status => 'success'
+		}
+		pubhub.publish 'task-finished', message.to_json
 		return [200, {}, []]
 	rescue => e
 		return [500, {}, [e.message]]
