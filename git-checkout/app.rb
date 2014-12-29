@@ -33,6 +33,7 @@ class App
 		conn = pubhub
 		conn.subscribe("build-finished") do |on|
 			on.message do |channel, message|
+				puts "Message Recieved: #{channel}, #{message}"
 				build = JSON.parse(message)
 				conn.unsubscribe if build["buildid"] == buildid
 			end
