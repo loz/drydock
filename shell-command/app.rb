@@ -10,6 +10,8 @@ class App
 		puts "Receiving Build: #{buildid}"
 		run_command(cmd)
 		notify_success(buildid)
+		puts "Flusing.."
+		STDOUT.flush
 	end
 
 	def pubhub

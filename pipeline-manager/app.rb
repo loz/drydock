@@ -103,7 +103,7 @@ class App
 		buildid = msg["buildid"]
 		build = JSON.parse(redis.get(buildid))
 		working = build["working"]
-		cmd = "docker run -d -v /root/.ssh:/root/.ssh -v /var/run/docker.sock:/var/run/docker.sock --volumes-from #{working} shell-command #{buildid} ./manual-cd.sh"
+		cmd = "docker run -d -v /root/.ssh:/root/.ssh --link redis:redis -v /var/run/docker.sock:/var/run/docker.sock --volumes-from #{working} shell-command #{buildid} ./manual-cd.sh"
 		puts "Running #{cmd}"
 		puts `#{cmd}`
 	end
