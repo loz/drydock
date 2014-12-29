@@ -8,6 +8,7 @@ CONN_STRING = "redis://#{ENV["REDIS_PORT_6379_TCP_ADDR"]}:#{ENV["REDIS_PORT_6379
 
 class App
 	def run
+		@active = true
 		send_replace_signal
 		watch_messages
 	end
@@ -51,6 +52,8 @@ class App
 
 	def handle_source(type, msg)
 		puts "Message: #{type} -> #{msg.inspect}"
+		puts "Skiping as inactive.." unless @active
+		return unless @active
 		case type
 		when 'github-webhook'
 			clone_repo(msg)
@@ -66,7 +69,12 @@ class App
 		case cmd
 		when 'replace-pipeline'
 			puts "Being Replaced..."
-			hub.unsubscribe
+			@active = false
+			Thread.new do
+				puts "Sleeping for 5 seconds then exiting.."
+				sleep 5
+				hub.unsubscribe
+			end
 		end
 	end
 
