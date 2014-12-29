@@ -70,11 +70,11 @@ class App
 		when 'replace-pipeline'
 			puts "Being Replaced..."
 			@active = false
-			Thread.new do
-				puts "Sleeping for 5 seconds then exiting.."
-				sleep 5
-				hub.unsubscribe
-			end
+			#Thread.new do
+		#		puts "Sleeping for 5 seconds then exiting.."
+	#			sleep 5
+#				hub.unsubscribe
+#			end
 		end
 	end
 
