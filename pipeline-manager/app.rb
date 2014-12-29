@@ -17,12 +17,18 @@ class App
 		puts 'Subscribing..'
 		hub.subscribe("task-finished", "commands") do |on|
 			on.message do |channel, message|
+				begin
 				puts "Message on #{channel}"
 				case channel
 				when 'task-finished'
 					handle_task(message)
 				when 'commands'
 					handle_command(message)
+				end
+				10.times { puts 'flush' }
+				STDOUT.flush
+				rescue => e
+					puts 'Sub err:' + e.message
 				end
 			end
 		end
@@ -99,7 +105,7 @@ class App
 		working = build["working"]
 		cmd = "docker run -d -v /root/.ssh:/root/.ssh -v /var/run/docker.sock:/var/run/docker.sock --volumes-from #{working} shell-command #{buildid} ./manual-cd.sh"
 		puts "Running #{cmd}"
-		`#{cmd}`
+		puts `#{cmd}`
 	end
 
 	def build_complete(msg)

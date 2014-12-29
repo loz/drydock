@@ -9,7 +9,7 @@ docker run --name github-webhook -d \
 		-v /root/.ssh:/root/.ssh \
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		github-webhook
-docker run --name pipeline-manager -d \
+docker run -d \
 		--link redis:redis \
 		-v /root/.ssh:/root/.ssh \
 		-v /var/run/docker.sock:/var/run/docker.sock \
