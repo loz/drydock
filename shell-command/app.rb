@@ -24,6 +24,8 @@ class App
 		}
 		puts "Notify 'task-finished' -> #{message.inspect}"
 		puts pubhub.publish 'task-finished', message.to_json
+	rescue => e
+		puts e.message
 	end
 
 	def run_command(cmd)

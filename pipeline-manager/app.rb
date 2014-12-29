@@ -24,7 +24,6 @@ class App
 				when 'commands'
 					handle_command(message)
 				end
-
 			end
 		end
 	end
@@ -62,6 +61,8 @@ class App
 		when 'shell-command'
 			build_complete(msg)
 		end
+	rescue => e
+		puts e.message
 	end
 
 	def handle_command(cmd)
@@ -76,6 +77,8 @@ class App
 #				hub.unsubscribe
 #			end
 		end
+	rescue => e
+		puts e.message
 	end
 
 	def clone_repo(facts)
