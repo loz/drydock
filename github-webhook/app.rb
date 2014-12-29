@@ -8,7 +8,6 @@ CONN_STRING = "redis://#{ENV["REDIS_PORT_6379_TCP_ADDR"]}:#{ENV["REDIS_PORT_6379
 
 class App
 	def call(env)
-		logger = env["rack.logger"]
 		req = Rack::Request.new(env)
 		payload = JSON.parse(req.body.read)
 		facts = extract_facts(payload, req)

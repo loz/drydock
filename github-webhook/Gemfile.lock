@@ -3,6 +3,7 @@ GEM
   specs:
     diff-lcs (1.2.5)
     rack (1.5.2)
+    redis (3.2.0)
     rspec (3.1.0)
       rspec-core (~> 3.1.0)
       rspec-expectations (~> 3.1.0)
@@ -21,4 +22,5 @@ PLATFORMS
 
 DEPENDENCIES
   rack
+  redis
   rspec
