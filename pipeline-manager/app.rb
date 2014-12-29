@@ -9,56 +9,39 @@ CONN_STRING = "redis://#{ENV["REDIS_PORT_6379_TCP_ADDR"]}:#{ENV["REDIS_PORT_6379
 class App
 	def run
 		send_replace_signal
-		threads = []
-		threads << watch_tasks
-		threads << watch_commands
-		threads.map &:join
+		watch_messages
 	end
 
-	def watch_tasks
-		hub = taskhub
-		Thread.new do
-			puts 'Watching Tasks..'
-			hub.subscribe("task-finished") do |on|
-				on.message do |channel, message|
-					msg = JSON.parse(message)
-					source = msg["source"]
-					handle_source(source, msg)
+	def watch_messages
+		puts 'Subscribing..'
+		hub.subscribe("task-finished", "commands") do |on|
+			on.message do |channel, message|
+				puts "Message on #{channel}"
+				case channel
+				when 'task-finished'
+					handle_task(message)
+				when 'commands'
+					handle_command(message)
 				end
+
 			end
 		end
-	rescue => e
-		puts e.message
-		sleep 1
-		retry
 	end
 
-	def watch_commands
-		hub = cmdhub
-		Thread.new do
-			puts 'Watching Commands..'
-			hub.subscribe("commands") do |on|
-				on.message do |channel, message|
-					handle_command(msg)
-				end
-			end
-		end
+	def handle_task(message)
+		msg = JSON.parse(message)
+		source = msg["source"]
+		handle_source(source, msg)
 	rescue => e
 		puts e.message
-		sleep 1
-		retry
 	end
 
 	def redis
 		Redis.new(:url => CONN_STRING)
 	end
 
-	def taskhub
-		@taskhub ||= Redis.new(:url => CONN_STRING)
-	end
-
-	def cmdhub
-		@cmdhub ||= Redis.new(:url => CONN_STRING)
+	def hub
+		@hub ||= redis
 	end
 
 	def send_replace_signal
@@ -83,8 +66,7 @@ class App
 		case cmd
 		when 'replace-pipeline'
 			puts "Being Replaced..."
-			cmdhub.unsubscribe
-			taskhub.unsubscribe
+			hub.unsubscribe
 		end
 	end
 
