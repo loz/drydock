@@ -25,7 +25,6 @@ class App
 				when 'commands'
 					handle_command(message)
 				end
-				10.times { puts 'flush' }
 				STDOUT.flush
 				rescue => e
 					puts 'Sub err:' + e.message
@@ -75,13 +74,8 @@ class App
 		puts "Command Recieved: #{cmd}"
 		case cmd
 		when 'replace-pipeline'
-			puts "Being Replaced..."
-			@active = false
-			#Thread.new do
-		#		puts "Sleeping for 5 seconds then exiting.."
-	#			sleep 5
-#				hub.unsubscribe
-#			end
+			puts "Being Replaced, Shutting down..."
+			hub.unsubscribe
 		end
 	rescue => e
 		puts e.message
