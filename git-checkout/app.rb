@@ -2,6 +2,7 @@ require 'json'
 require 'yaml'
 require 'logger'
 require 'redis'
+require 'open3'
 
 CONN_STRING = "redis://#{ENV["REDIS_PORT_6379_TCP_ADDR"]}:#{ENV["REDIS_PORT_6379_TCP_PORT"]}/0"
 
@@ -9,20 +10,23 @@ class App
 	def run(buildid)
 		puts "Receiving Build: #{buildid}"
 		build = JSON.parse(pubhub.get(buildid))
-		clone_source(build)
-		notify_success(buildid)
-		await_finish(buildid)
+		if clone_source(build)
+			notify('success', buildid)
+			await_finish(buildid)
+		else
+			notify('failed', buildid)
+		end
 	end
 
 	def pubhub
 		Redis.new(:url => CONN_STRING)
 	end
 
-	def notify_success(buildid)
+	def notify(status, buildid)
 		message = {
 			:source => 'git-checkout',
 			:buildid => buildid,
-			:status => 'success'
+			:status => status
 		}
 		puts "Notify 'task-finished' -> #{message.inspect}"
 		puts pubhub.publish 'task-finished', message.to_json
@@ -45,10 +49,21 @@ class App
 		puts build.to_yaml
 		repo = build["repo"]
 		puts "Cloning #{repo}"
-		puts `git clone --depth 1 #{repo} /working`
-		puts 'Clone complete'
+		cmd = "git clone --depth 1 #{repo} /working"
+		stdout, stderr, status = Open3.capture3(cmd)
+		puts stdout
+		if status.success?
+			puts 'Clone successfully'
+			true
+		else
+			puts 'Clone failed'
+			puts stderr
+			false
+		end
 	end
 
 end
 
-App.new.run ARGV[0]
+if __FILE__ == $0
+  App.new.run ARGV[0]
+end
