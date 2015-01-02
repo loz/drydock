@@ -2,3 +2,6 @@ source "https://rubygems.org"
 
 gem "redis"
 gem "rspec"
+gem "guard-rspec"
+gem "simplecov"
+gem "cadre"

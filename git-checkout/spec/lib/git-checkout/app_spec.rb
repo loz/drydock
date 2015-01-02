@@ -1,7 +1,8 @@
 require 'spec_helper'
 require 'stringio'
+require 'git-checkout/app'
 
-describe "App" do
+describe "GitCheckout::App" do
 	let(:buildid) { "a-build-id" }
 	let(:build) do
 		{
@@ -15,7 +16,7 @@ describe "App" do
 	let(:status) { double }
 	let(:redis) { double }
 
-	subject { App.new }
+	subject { GitCheckout::App.new }
 
 	describe "#run" do
 		before :each do
