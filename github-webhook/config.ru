@@ -1,4 +1,5 @@
-require File.join(File.dirname(__FILE__),'app')
+$LOAD_PATH.unshift File.expand_path(File.dirname(__FILE__), './lib')
+require 'github-webhook'
 
 use Rack::Logger
-run App.new
+run GithubWebhook::App.new

@@ -1,0 +1,113 @@
+name: "Drydock"
+steps:
+	checkout:
+		image: git-checkout
+		# Running image will bind mount /root/.ssh credentials
+		ssh: true
+
+	# CO -> WH Image -> WH Tests -> WH Deploy
+	webhook-image:
+		dependencies:
+			- checkout
+		image: docker-build
+		# Running image needs docker socket
+		docker: true
+		volumes:
+			- checkout
+		path: github-webhook
+		args: github-webhook
+	
+	wehbook-tests:
+		dependencies:
+			- webhook-image
+		image: webhook-image
+		#command to the container image
+		entrypoint: "bundle exec rspec"
+	
+	webhook-deploy:
+		depencencies:
+			 - wehbook-tests
+		image: github-webhook
+		#flags are flags for docker
+		flags: "--name github-webhook -d --env'VIRTUAL_HOST=github-webhook.services.mrloz.xyz' --env='VIRTUAL_PORT=3000'"
+
+	# CO -> PM Image -> PM Tests -> PM Deploy
+	pipeline-image:
+		dependencies:
+			- checkout
+		image: docker-build
+		docker: true
+		volumes:
+			- checkout
+		path: pipeline-manager
+		args: pipeline-manager
+	
+	pipeline-tests:
+		dependencies:
+			- pipeline-image
+		image: pipeline-manager
+		#command to the container image
+		entrypoint: "bundle exec rspec"
+
+	pipeline-deploy:
+		dependencies:
+			- pipeline-tests
+		image: pipeline-manager
+		docker: true
+
+	# CO -> CO Image -> CO Tests
+	# TODO: Rollback image on failure..
+	checkout-image:
+		dependencies:
+			- checkout
+		image: docker-build
+		docker: true
+		volumes:
+			- checkout
+		path: git-checkout
+		args: git-checkout
+	
+	checkout-tests:
+		dependencies:
+			- checkout-image
+		image: git-checkout
+		#command to the container image
+		entrypoint: "bundle exec rspec"
+
+	# CO -> SC Image -> SC Tests
+	# TODO: Rollback image on failure..
+	shell-image:
+		dependencies:
+			- checkout
+		image: docker-build
+		docker: true
+		volumes:
+			- checkout
+		path: shell-command
+		args: shell-comand
+	
+	shell-tests:
+		dependencies:
+			- shell-image
+		image: shell-command
+		#command to the container image
+		entrypoint: "bundle exec rspec"
+
+	# CO -> DB Image -> DB Tests
+	# TODO: Rollback image on failure..
+	docker-build-image:
+		dependencies:
+			- checkout
+		image: docker-build
+		docker: true
+		volumes:
+			- checkout
+		path: docker-build
+		args: docker-build
+	
+	docker-build-tests:
+		dependencies:
+			- docker-build-image
+		image: docker-build
+		#command to the container image
+		entrypoint: "bundle exec rspec"

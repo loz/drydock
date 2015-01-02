@@ -1,5 +1,8 @@
 source "https://rubygems.org"
 
-gem "rack"
-gem "rspec"
 gem "redis"
+gem "rspec"
+gem "rack"
+gem "guard-rspec"
+gem "simplecov"
+gem "cadre"
