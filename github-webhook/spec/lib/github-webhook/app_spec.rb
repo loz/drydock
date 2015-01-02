@@ -1,8 +1,10 @@
 require 'spec_helper'
 require 'stringio'
 
-describe "App" do
-	subject { App.new }
+require 'github-webhook/app'
+
+describe "GithubWebhook::App" do
+	subject { GithubWebhook::App.new }
 
 	describe "#call" do
 		before :each do
