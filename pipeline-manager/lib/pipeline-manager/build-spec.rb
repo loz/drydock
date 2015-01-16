@@ -1,4 +1,5 @@
 require 'yaml'
+require 'net/http'
 						
 module PipelineManager
 	class Step
@@ -36,6 +37,12 @@ module PipelineManager
 
 		def self.from_yaml(yml)
 			new YAML.load(yml)
+		end
+
+		def self.from_url(url)
+			uri = URI(url)
+			yaml = Net::HTTP.get(uri)
+			from_yaml(yaml)
 		end
 
 		def initialize(structure)

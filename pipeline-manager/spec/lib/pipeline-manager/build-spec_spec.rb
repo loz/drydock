@@ -1,11 +1,11 @@
 require 'spec_helper'
+require 'webmock'
+require 'webmock/rspec'
 
 describe "PipelineManager::BuildSpec" do
 	let(:klass) { PipelineManager::BuildSpec }
-
-	describe ".from_yaml" do
-		let(:yaml) do
-			<<-YAML
+	let(:yaml) do
+		<<-YAML
 name: Example
 steps:
   first-one:
@@ -19,8 +19,24 @@ steps:
     volumes:
     - first-one
     args: bla bla
-			YAML
+		YAML
+	end
+
+	describe ".from_url" do
+		let(:url) { "http://example.com/build.yaml" }
+		subject { klass.from_url(url) }
+
+		before :each do
+			stub_request(:get, url).
+				to_return(:status => 200, :body => yaml, :headers => {})
 		end
+
+		it "loads the specification from the url" do
+			expect(subject.name).to eq "Example"
+		end
+	end
+
+	describe ".from_yaml" do
 
 		subject { klass.from_yaml(yaml) }
 
