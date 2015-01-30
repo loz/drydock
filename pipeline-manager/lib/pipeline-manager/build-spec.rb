@@ -2,37 +2,6 @@ require 'yaml'
 require 'net/http'
 						
 module PipelineManager
-	class Step
-		attr_reader :name
-
-		def initialize(details)
-			@name, @spec = details
-		end
-
-		def ready?(state)
-			if state
-				!already_launched?(state) &&
-				dependencies_satisfied?(state)
-			else
-				dependencies.empty?
-			end
-		end
-
-		private
-
-		def dependencies
-			@spec["dependencies"] || []
-		end
-
-		def dependencies_satisfied?(state)
-			dependencies.all? { |d| state[d] == "success" }
-		end
-
-		def already_launched?(state)
-			state[name]
-		end
-	end
-
 	class BuildSpec
 
 		def self.from_yaml(yml)
