@@ -36,11 +36,20 @@ module ShellCommand
 			stdout, stderr, status = nil
   		Dir.chdir "/working" do
   			puts "running #{cmd}"
-				stdout, stderr, status = Open3.capture3(cmd)
+				#stdout, stderr, status = Open3.capture3(cmd)
+				stdin, stdout, stderr, wait_thread = Open3.popen3(cmd)
+				while wait_thread.alive?
+					streams = IO.select([stdout, stderr])
+					stream = streams[0][0]
+					puts stream.readline
+					STDOUT.flush
+				end
+				status = wait_thread.value
   		end
-			puts stdout
+			puts "outside again..."
+			#puts stdout
 			return true if status.success?
-			puts stderr
+			#puts stderr
 			false
   	end
   
