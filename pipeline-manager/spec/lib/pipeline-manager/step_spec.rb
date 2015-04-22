@@ -23,6 +23,12 @@ describe "Step" do
 			expect(cmd[0]).to eq "docker run -d"
 		end
 
+		it "links to redis" do
+			cmd = subject.cmd(status)
+
+			expect(cmd[1]).to eq "--link=redis:redis"
+		end
+
 		it "uses the image" do
 			cmd = subject.cmd(status)
 
@@ -37,7 +43,7 @@ describe "Step" do
 			it "binds the docker socket" do
 				cmd = subject.cmd(status)
 
-				expect(cmd[1]).to eq "-v /var/run/docker.sock:/var/run/docker.sock"
+				expect(cmd).to include "-v /var/run/docker.sock:/var/run/docker.sock"
 			end
 		end
 
@@ -49,7 +55,7 @@ describe "Step" do
 			it "attaches the running volume" do
 				cmd = subject.cmd(status)
 
-				expect(cmd[1]).to eq "--volumes-from asha"
+				expect(cmd).to include "--volumes-from asha"
 			end
 		end
 

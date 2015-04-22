@@ -18,6 +18,7 @@ module PipelineManager
 		def cmd(status)
 			run = []
 			run << "docker run -d"
+			link_to_redis(run)
 			apply_docker(run)
 			apply_ssh_creds(run)
 			apply_volumes(run, status)
@@ -35,6 +36,10 @@ module PipelineManager
 		end
 
 		private
+
+		def link_to_redis(run)
+			run << "--link=redis:redis"
+		end
 
 		def apply_docker(run)
 			if docker_required?
