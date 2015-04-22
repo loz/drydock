@@ -22,6 +22,11 @@ steps:
 		YAML
 	end
 
+	let(:running_state) { double(:status => "running", :completed? => false) }
+	let(:completed_state) { double(:completed? => true) }
+	let(:failed_state) { double(:status => "failed", :completed? => true) }
+	let(:success_state) { double(:status => "success", :completed? => true) }
+
 	describe ".from_url" do
 		let(:url) { "http://example.com/build.yaml" }
 		subject { klass.from_url(url) }
@@ -59,7 +64,7 @@ steps:
 			end
 
 			context "with prior state" do
-				let(:state) { {"first-one" => "success"}}
+				let(:state) { {"first-one" => success_state}}
 
 				it "includes steps with satisfied dependencies" do
 					steps = subject.next_steps(state)
@@ -71,7 +76,7 @@ steps:
 				end
 
 				it "does not include steps not satisfied" do
-					state = { "first-one" => "running" }
+					state = { "first-one" => running_state }
 					expect(subject.next_steps(state).length).to eq 0
 				end
 			end
@@ -88,7 +93,7 @@ steps:
 
 			context "when there are no more steps" do
 				context "and some are running" do
-					let(:state) { { "first-one" => "running" } }
+					let(:state) { { "first-one" => running_state } }
 
 					it "is not complete" do
 						expect(subject.completed?(state)).to be false
@@ -96,7 +101,7 @@ steps:
 				end
 
 				context "and all have run" do
-					let(:state) { { "first-one" => "complete", "second-one" => "complete" } }
+					let(:state) { { "first-one" => completed_state , "second-one" => completed_state } }
 
 					it "is complete" do
 						expect(subject.completed?(state)).to be true
@@ -107,7 +112,7 @@ steps:
 
 		describe "#succeeded?" do
 			context "when all tasks are completed" do
-				let(:state) { { "first-one" => "complete", "second-one" => "complete" } }
+				let(:state) { { "first-one" => success_state, "second-one" => success_state } }
 
 				it "is successful" do
 					expect(subject.succeeded?(state)).to be true
@@ -115,7 +120,7 @@ steps:
 			end
 
 			context "when one or more tasks is failed" do
-				let(:state) { { "first-one" => "complete", "second-one" => "failed" } }
+				let(:state) { { "first-one" => success_state, "second-one" => failed_state } }
 
 				it "is not successful" do
 					expect(subject.succeeded?(state)).to be false

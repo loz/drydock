@@ -72,7 +72,7 @@ module PipelineManager
 		end
 
 		def dependencies_satisfied?(state)
-			dependencies.all? { |d| state[d] == "success" }
+			dependencies.all? { |d| state[d].status == "success" }
 		end
 
 		def already_launched?(state)
