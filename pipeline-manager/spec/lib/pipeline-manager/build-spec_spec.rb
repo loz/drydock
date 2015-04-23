@@ -22,10 +22,14 @@ steps:
 		YAML
 	end
 
-	let(:running_state) { double(:status => "running", :completed? => false) }
-	let(:completed_state) { double(:completed? => true) }
-	let(:failed_state) { double(:status => "failed", :completed? => true) }
-	let(:success_state) { double(:status => "success", :completed? => true) }
+	def make_state(args)
+		PipelineManager::Build::State.new(args)
+	end
+
+	let(:running_state) { make_state("status" => "running") }
+	let(:completed_state) { make_state("status" => "notrunning") }
+	let(:failed_state) { make_state("status" => "failed") }
+	let(:success_state) { make_state("status" => "success") }
 
 	describe ".from_url" do
 		let(:url) { "http://example.com/build.yaml" }
@@ -47,6 +51,14 @@ steps:
 
 		it "creates a specification from the string" do
 			expect(subject.name).to eq "Example"
+		end
+
+		describe "#steps" do
+			it "includes all steps in the spec" do
+				steps = subject.steps
+
+				expect(steps.length).to eq 2
+			end
 		end
 
 		describe "#next_steps" do

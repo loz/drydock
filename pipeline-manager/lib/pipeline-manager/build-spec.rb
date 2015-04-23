@@ -32,13 +32,7 @@ module PipelineManager
 		end
 
 		def succeeded?(state)
-			state.values.all? { |s| s.status == "success" }
-		end
-
-		private
-
-		def all_finished?(state)
-			state.values.all? &:completed?
+			state.values.all? &:success?
 		end
 
 		def steps
@@ -47,5 +41,10 @@ module PipelineManager
 			end
 		end
 
+		private
+
+		def all_finished?(state)
+			state.values.all? &:completed?
+		end
 	end
 end

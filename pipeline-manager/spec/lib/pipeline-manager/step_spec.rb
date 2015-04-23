@@ -10,7 +10,7 @@ describe "Step" do
 
 	let(:status) do
 		{
-			"some-step" => double(:status => "running", :container => "asha")
+			"some-step" => PipelineManager::Build::State.new("status" => "running", "container" => "asha")
 		}
 	end
 
