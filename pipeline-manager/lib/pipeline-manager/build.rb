@@ -20,8 +20,7 @@ class PipelineManager::Build
 
 	def initialize(attrs = {}, connection)
 		@id = attrs["id"]
-		@started = extract_time(attrs["started"])
-		@started = Time.parse(@started) if @started.is_a? String
+		@started = Time.parse(attrs["started"])
 		@connection = connection
 	end
 
@@ -67,11 +66,6 @@ class PipelineManager::Build
 			"id" => id,
 			"started" => started
 		}
-	end
-
-	def extract_time(time)
-		time = Time.parse(time) if time.is_a? String
-		time
 	end
 
 	class State
