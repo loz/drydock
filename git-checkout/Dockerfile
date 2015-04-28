@@ -11,11 +11,11 @@ RUN sh -c "echo deb https://get.docker.io/ubuntu docker main > /etc/apt/sources.
 RUN apt-get update
 RUN apt-get -y install lxc-docker-1.0.0
 
-ADD ./Gemfile /var/www/Gemfile
-ADD ./Gemfile.lock /var/www/Gemfile.lock
+COPY ./Gemfile /var/www/Gemfile
+COPY ./Gemfile.lock /var/www/Gemfile.lock
 RUN bundle install
 
-ADD . /var/www/
+COPY . /var/www/
 
 RUN mkdir /working
 

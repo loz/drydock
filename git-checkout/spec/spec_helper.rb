@@ -19,8 +19,6 @@ require 'cadre/rspec3'
 require 'simplecov'
 SimpleCov.start
 
-$LOAD_PATH.unshift File.expand_path(File.dirname(__FILE__), '../lib')
-
 require 'git-checkout'
 
 RSpec.configure do |config|

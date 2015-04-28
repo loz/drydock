@@ -1,5 +1,5 @@
-$LOAD_PATH.unshift File.expand_path(File.dirname(__FILE__), './lib')
+$LOAD_PATH.unshift File.expand_path('./lib', File.dirname(__FILE__))
 
 require 'shell-command'
 
-ShellCommand::App.new.run ARGV[0]
+ShellCommand::App.new.run ARGV[0], ARGV[1]
